@@ -403,7 +403,7 @@ This is a private project. If you have found a bug or security issue, please see
 
 ## License
 
-Copyright © 2026 PU Era / Ashish Cherian
+Copyright © 2026 PU Era / Ashish Cherian / Karthik S Kulal / Shreyas G Hegde
 
 Original code in this repository is licensed under the **MIT License** — see [LICENSE](./LICENSE) for details.
 
