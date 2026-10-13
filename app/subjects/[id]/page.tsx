@@ -1,3 +1,5 @@
+export const instant = false
+
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { getSubjectByKey } from '@/lib/data/subjects'
@@ -5,116 +7,251 @@ import { getPublishedChapters } from '@/lib/data/chapters'
 import { getSubjectById } from '@/lib/content/taxonomy'
 import { resolveSubjectSlug } from '@/lib/subject-keys'
 import { notFound } from 'next/navigation'
-import { ChevronRight, BookOpen } from 'lucide-react'
-import { subjectName } from '@/lib/display-subject'
+import {
+  ChevronRight, BookOpen, FlaskConical, FileText,
+  Check, ArrowRight, Layers
+} from 'lucide-react'
+import { subjectName, subjectCode } from '@/lib/display-subject'
 
-export default async function SubjectPage({ params }: { params: { id: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const fallback = getSubjectById(id)
+  const name = fallback ? subjectName(fallback) : 'Subject'
+  return {
+    title: `${name} | PU Era`,
+    description: `Free notes, chapter summaries, and study resources for ${name}. Karnataka PUC & NCERT.`,
+  }
+}
+
+export default async function SubjectPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   return (
-    <div className="container mx-auto px-4 py-12">
-      <Suspense fallback={<div className="text-center py-12">Loading subject...</div>}>
-        <SubjectData id={params.id} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<SubjectSkeleton />}>
+      <SubjectData id={id} />
+    </Suspense>
   )
 }
 
 async function SubjectData({ id }: { id: string }) {
-  const subject = await getSubjectByKey(id)
-  const chapters = await getPublishedChapters(id)
-  const subjectSlug = subject?.slug ?? resolveSubjectSlug(id)
+  const [subject, chapters] = await Promise.all([
+    getSubjectByKey(id),
+    getPublishedChapters(id),
+  ])
 
   const fallbackSubject = getSubjectById(id)
   const displaySubject = subject || fallbackSubject
 
-  if (!displaySubject) {
-    notFound()
-  }
+  if (!displaySubject) notFound()
 
-  const displayChapters = chapters.length > 0 ? chapters : generateMockChapters(displaySubject)
+  const subjectSlug = subject?.slug ?? resolveSubjectSlug(id)
+  const displayChapters = chapters
+
+  const streamTheme = getStreamTheme(displaySubject.stream)
 
   return (
-    <>
-      <nav className="flex items-center text-sm text-neutral-600 mb-6">
-        <Link href="/subjects" className="hover:text-primary-600">Subjects</Link>
-        <ChevronRight className="h-4 w-4 mx-2" />
-        <span className="text-neutral-900">{subjectName(displaySubject)}</span>
-      </nav>
+    <div>
+      {/* ── Page Hero ── */}
+      <div className="page-hero">
+        <div>
+          {/* Breadcrumb */}
+          <nav className="breadcrumb mb-4">
+            <Link href="/subjects">Subjects</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span style={{ color: '#111827', fontWeight: 600 }}>{subjectName(displaySubject)}</span>
+          </nav>
 
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-neutral-900 mb-2">{subjectName(displaySubject)}</h1>
-        <p className="text-lg text-neutral-600">
-          {displaySubject.class_level} • {displaySubject.stream} • {displaySubject.board}
-        </p>
-        {displaySubject.has_lab && (
-          <span className="inline-block mt-2 px-3 py-1 bg-accent-100 text-accent-700 text-sm font-medium rounded">
-            Includes Lab Materials
-          </span>
-        )}
-      </div>
-
-      <div className="mb-12">
-        <h2 className="text-2xl font-semibold text-neutral-900 mb-6">Chapters</h2>
-        {displayChapters.length === 0 ? (
-          <div className="text-center py-12 text-neutral-600">
-            <p>No chapters available yet.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {displayChapters.map((chapter) => (
-              <Link
-                key={chapter.id}
-                href={`/subjects/${subjectSlug}/${'slug' in chapter ? chapter.slug : chapter.id}`}
-                className="flex items-center p-4 border border-neutral-200 rounded-lg hover:border-primary-300 hover:shadow-md transition-all bg-white"
+          <div className="flex items-start gap-4">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: streamTheme.iconBg }}
+            >
+              {displaySubject.has_lab
+                ? <FlaskConical className="w-6 h-6" style={{ color: streamTheme.iconColor }} />
+                : <BookOpen className="w-6 h-6" style={{ color: streamTheme.iconColor }} />
+              }
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className={streamTheme.pill}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: streamTheme.dotBg }} />
+                  {displaySubject.stream}
+                </span>
+                <span className="stream-pill general">{displaySubject.class_level}</span>
+                <span className="stream-pill general">{displaySubject.board}</span>
+                {displaySubject.has_lab && (
+                  <span className="stream-pill science">
+                    <FlaskConical className="w-3 h-3" /> Lab
+                  </span>
+                )}
+              </div>
+              <h1
+                className="text-3xl sm:text-4xl font-extrabold text-[#111827] tracking-tight"
+                style={{ fontFamily: 'var(--font-display)' }}
               >
-                <div className="flex items-center justify-center w-10 h-10 bg-primary-100 text-primary-600 rounded-lg mr-4">
-                  <BookOpen className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-neutral-900">{(chapter as any).title || (chapter as any).title_en}</h3>
-                  <p className="text-sm text-neutral-600">Notes & Resources</p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-neutral-400" />
-              </Link>
-            ))}
+                {subjectName(displaySubject)}
+              </h1>
+              <p className="text-slate-500 text-sm mt-1">
+                {subjectCode(displaySubject)} · {displaySubject.class_level} · {displaySubject.board}
+              </p>
+            </div>
           </div>
-        )}
-      </div>
-
-      <div className="border-t border-neutral-200 pt-8">
-        <h2 className="text-xl font-semibold text-neutral-900 mb-4">Related Subjects</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <RelatedSubjectCard classLevel={displaySubject.class_level} stream={displaySubject.stream} excludeId={id} />
         </div>
       </div>
-    </>
+
+      {/* ── Main Content ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+          {/* ── Chapter List ── */}
+          <div className="lg:col-span-8">
+            <div className="flex items-center justify-between mb-5">
+              <h2
+                className="text-xl font-bold text-[#111827]"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Chapters
+              </h2>
+              <span className="text-sm text-slate-400">
+                {displayChapters.length} chapter{displayChapters.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            {displayChapters.length === 0 ? (
+              <div className="picker-box text-center py-12">
+                <BookOpen className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                <p className="text-slate-500 font-medium">No chapters available yet.</p>
+                <p className="text-slate-400 text-sm mt-1">Check back soon — content is being added.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {displayChapters.map((chapter, idx) => {
+                  const num = (chapter as any).number ?? idx + 1
+                  const title = (chapter as any).title ?? (chapter as any).title_en ?? `Chapter ${num}`
+                  const chapterKey = (chapter as any).slug ?? (chapter as any).id
+                  return (
+                    <Link
+                      key={(chapter as any).id ?? idx}
+                      href={`/subjects/${subjectSlug}/${chapterKey}`}
+                      className="chapter-row group"
+                    >
+                      <div className="chapter-num-badge">{num}</div>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="text-sm font-semibold text-[#111827] truncate"
+                          style={{ fontFamily: 'var(--font-display)' }}
+                        >
+                          {title}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5">Notes &amp; Resources</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-brand-green flex-shrink-0 transition-colors" />
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ── Sidebar ── */}
+          <div className="lg:col-span-4 space-y-4">
+
+            {/* Quick info */}
+            <div className="picker-box space-y-3">
+              <p className="section-eyebrow">Subject Info</p>
+              {[
+                { label: 'Class', value: displaySubject.class_level },
+                { label: 'Stream', value: displaySubject.stream },
+                { label: 'Board', value: displaySubject.board },
+                { label: 'Code', value: subjectCode(displaySubject) },
+                { label: 'Lab', value: displaySubject.has_lab ? 'Yes' : 'No' },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">{label}</span>
+                  <span className="font-semibold text-[#111827]">{value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Resources CTA */}
+            <div className="picker-box space-y-3">
+              <p className="section-eyebrow">Quick Links</p>
+              <Link
+                href="/textbooks"
+                className="flex items-center gap-3 text-sm text-slate-700 hover:text-brand-green transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-4 h-4 text-amber-700" />
+                </div>
+                Official Textbooks
+              </Link>
+              <Link
+                href="/lab-guides"
+                className="flex items-center gap-3 text-sm text-slate-700 hover:text-brand-green transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                  <FlaskConical className="w-4 h-4 text-emerald-700" />
+                </div>
+                Lab Guides
+              </Link>
+              <Link
+                href="/subjects"
+                className="flex items-center gap-3 text-sm text-slate-700 hover:text-brand-green transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                  <Layers className="w-4 h-4 text-slate-500" />
+                </div>
+                All Subjects
+              </Link>
+            </div>
+
+            {/* Verified badge */}
+            <div
+              className="picker-box flex items-center gap-3"
+              style={{ background: '#F0FDF4', borderColor: '#A7F3D0' }}
+            >
+              <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <p className="text-sm text-emerald-800 font-medium">
+                Content verified for {displaySubject.class_level} syllabus
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
-function generateMockChapters(subject: any) {
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: `${subject.id}-ch${i + 1}`,
-    number: i + 1,
-    title: `Chapter ${i + 1}: ${getChapterTitle(subject.code, i + 1)}`,
-  }))
-}
+/* ── Helpers ── */
 
-function getChapterTitle(code: string, num: number): string {
-  const titles: Record<string, string[]> = {
-    'PHY': ['Physical World', 'Units and Measurements', 'Motion in a Straight Line', 'Motion in a Plane', 'Laws of Motion', 'Work, Energy and Power', 'System of Particles', 'Gravitation'],
-    'CHE': ['Some Basic Concepts', 'Structure of Atom', 'Classification of Elements', 'Chemical Bonding', 'Thermodynamics', 'Equilibrium', 'Redox Reactions', 'Organic Chemistry'],
-    'MAT': ['Sets', 'Relations and Functions', 'Trigonometric Functions', 'Complex Numbers', 'Linear Inequalities', 'Permutations', 'Binomial Theorem', 'Sequences'],
-    'BIO': ['The Living World', 'Biological Classification', 'Plant Kingdom', 'Animal Kingdom', 'Morphology of Flowering', 'Anatomy of Flowering', 'Structural Organisation', 'Cell: The Unit'],
-    'ACC': ['Introduction to Accounting', 'Theory Base of Accounting', 'Recording of Transactions', 'Preparation of Journal', 'Ledger', 'Trial Balance', 'Depreciation', 'Bills of Exchange'],
-    'ECO': ['Indian Economy on the Eve', 'Indian Economy 1950-1990', 'Liberalisation', 'Poverty', 'Human Capital Formation', 'Rural Development', 'Employment', 'Infrastructure'],
-    'BST': ['Nature and Significance', 'Forms of Business Organisation', 'Private, Public and Global', 'Business Services', 'Emerging Modes', 'Social Responsibility', 'Formation of Company', 'Sources of Business'],
+function getStreamTheme(stream: string) {
+  switch (stream) {
+    case 'Science':  return { pill: 'stream-pill science',  iconBg: '#D1FAE5', iconColor: '#065F46', dotBg: '#16a34a' }
+    case 'Commerce': return { pill: 'stream-pill commerce', iconBg: '#E0F2FE', iconColor: '#0C4A6E', dotBg: '#0EA5E9' }
+    case 'Arts':     return { pill: 'stream-pill arts',     iconBg: '#FEF3C7', iconColor: '#78350F', dotBg: '#F59E0B' }
+    default:         return { pill: 'stream-pill general',  iconBg: '#F1F5F9', iconColor: '#475569', dotBg: '#94A3B8' }
   }
-  return titles[code]?.[num - 1] || `Topic ${num}`
 }
 
-function RelatedSubjectCard({ classLevel, stream, excludeId }: { classLevel: string, stream: string, excludeId: string }) {
+function SubjectSkeleton() {
   return (
-    <div className="p-4 border border-neutral-200 rounded-lg bg-neutral-50">
-      <p className="text-sm text-neutral-600">More subjects coming soon...</p>
+    <div>
+      <div className="page-hero">
+        <div>
+          <div className="skeleton h-4 w-40 rounded mb-4" />
+          <div className="flex items-start gap-4">
+            <div className="skeleton w-12 h-12 rounded-2xl" />
+            <div className="space-y-2">
+              <div className="skeleton h-4 w-32 rounded" />
+              <div className="skeleton h-8 w-64 rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-3">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="skeleton h-16 rounded-xl" />
+        ))}
+      </div>
     </div>
   )
 }

@@ -8,8 +8,8 @@ export default function AdminPagesPage() {
     { slug: 'privacy-policy', label: 'Privacy Policy', href: '/legal/privacy' },
     { slug: 'terms-of-service', label: 'Terms of Service', href: '/legal/terms' },
     { slug: 'copyright', label: 'Copyright Policy', href: '/legal/copyright' },
-    { slug: 'grievance', label: 'Grievance Officer', href: '/legal/grievance' },
     { slug: 'about', label: 'About Us', href: '/about' },
+    { slug: 'contact', label: 'Contact', href: '/contact' },
   ]
 
   return (

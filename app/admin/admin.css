@@ -1,0 +1,28 @@
+/* Admin-specific styles — dark theme overrides */
+.admin-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #f1f5f9;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.admin-input::placeholder {
+  color: #64748b;
+}
+
+.admin-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

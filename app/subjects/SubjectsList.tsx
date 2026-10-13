@@ -50,13 +50,13 @@ export default function SubjectsList({ puc1Subjects, puc2Subjects, ncert11Subjec
 
   const sections = useMemo(() => {
     if (classFilter !== 'all') {
-      return [{ key: classFilter, label: classLabel(classFilter), items: filtered }]
+      return [{ key: classFilter, label: classLabel(classFilter), anchor: classFilter.toLowerCase(), items: filtered }]
     }
     return [
-      { key: 'PUC2',    label: 'Karnataka 2nd PUC',   items: filtered.filter(s => s.class_level === 'PUC2')   },
-      { key: 'PUC1',    label: 'Karnataka 1st PUC',   items: filtered.filter(s => s.class_level === 'PUC1')   },
-      { key: 'NCERT12', label: 'NCERT Class 12',      items: filtered.filter(s => s.class_level === 'NCERT12') },
-      { key: 'NCERT11', label: 'NCERT Class 11',      items: filtered.filter(s => s.class_level === 'NCERT11') },
+      { key: 'PUC2',    label: 'Karnataka 2nd PUC',   anchor: 'puc2',    items: filtered.filter(s => s.class_level === 'PUC2')   },
+      { key: 'PUC1',    label: 'Karnataka 1st PUC',   anchor: 'puc1',    items: filtered.filter(s => s.class_level === 'PUC1')   },
+      { key: 'NCERT12', label: 'NCERT Class 12',      anchor: 'ncert12', items: filtered.filter(s => s.class_level === 'NCERT12') },
+      { key: 'NCERT11', label: 'NCERT Class 11',      anchor: 'ncert11', items: filtered.filter(s => s.class_level === 'NCERT11') },
     ].filter(s => s.items.length > 0)
   }, [filtered, classFilter])
 
@@ -67,7 +67,7 @@ export default function SubjectsList({ puc1Subjects, puc2Subjects, ncert11Subjec
 
         {/* Search */}
         <div className="search-bar max-w-xl">
-          <Search className="w-4.5 h-4.5 text-slate-400 flex-shrink-0" />
+          <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
           <input
             id="subjects-search"
             type="text"
@@ -135,7 +135,7 @@ export default function SubjectsList({ puc1Subjects, puc2Subjects, ncert11Subjec
       ) : (
         <div className="space-y-14">
           {sections.map((section) => (
-            <section key={section.key}>
+            <section key={section.key} id={section.anchor}>
               {/* Section header */}
               <div className="flex items-center gap-3 mb-6">
                 <div
