@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PU Era
+
+Free study resources for PUC and NCERT students across India. Quality notes, lab guides, and worked examples available in English, Kannada, and Hindi.
+
+## Project Overview
+
+PU Era is an educational platform providing:
+- PUC (Pre-University Course) study materials
+- NCERT curriculum resources
+- Student-written notes and guides
+- Lab guides and practical materials
+- Worked examples and practice problems
+- Multi-language support (English, Kannada, Hindi)
+
+## Tech Stack
+
+- **Framework**: Next.js 16 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS v4
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Validation**: Zod
+- **Icons**: Lucide React
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ installed
+- Supabase project with credentials
+
+### Environment Setup
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env.local
+```
+
+2. Add your Supabase credentials to `.env.local`:
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+```
+
+### Database Setup
+
+Apply migrations in order (see `scripts/apply-migrations.md`):
+
+1. `supabase/migrations/0001_complete_schema.sql`
+2. `supabase/migrations/0002_functions.sql`
+3. `supabase/migrations/0003_seed_data.sql`
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+pu-era/
+├── app/                      # Next.js app directory
+│   ├── components/          # React components
+│   │   └── common/         # Shared components (Header, Footer, etc.)
+│   ├── subjects/           # Subject-related pages
+│   ├── layout.tsx          # Root layout
+│   ├── page.tsx            # Home page
+│   └── globals.css         # Global styles
+├── lib/                     # Utility libraries
+│   ├── content/            # Content-related utilities
+│   │   ├── schema.ts       # Zod schemas
+│   │   └── taxonomy.ts     # Subject taxonomy
+│   ├── supabase/           # Supabase clients
+│   │   ├── server.ts       # Server client (RLS-bound)
+│   │   └── admin.ts        # Admin client (service-role)
+│   ├── i18n.ts             # Internationalization
+│   ├── tokens.ts           # Design tokens
+│   └── utils.ts            # General utilities
+├── supabase/               # Database schema
+│   └── schema.sql          # SQL schema definition
+└── public/                 # Static assets
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Current Features
+- ✅ Responsive header with navigation
+- ✅ Home page with hero section
+- ✅ Subject listing page
+- ✅ Subject detail page
+- ✅ Chapter detail page
+- ✅ Multi-language support (English, Kannada, Hindi)
+- ✅ Taxonomy with 40+ subjects
+- ✅ Content schema with translations
+- ✅ Database schema with RLS policies
 
-## Deploy on Vercel
+### Planned Features
+- ⏳ User authentication with Supabase Auth
+- ⏳ Admin dashboard with CRUD operations
+- ⏳ Real database integration for subjects/chapters/resources
+- ⏳ File upload for study materials
+- ⏳ User bookmarks and progress tracking
+- ⏳ Search functionality
+- ⏳ Legal pages (Terms, Privacy, etc.)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT License - See LICENSE file for details
